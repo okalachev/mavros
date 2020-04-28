@@ -20,6 +20,7 @@
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Vector3Stamped.h>
+#include <sensor_msgs/MagneticField>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
@@ -39,6 +40,7 @@ ros::Publisher track_marker_pub;
 ros::Publisher vehicle_marker_pub;
 ros::Publisher lt_marker_pub;
 ros::Publisher wp_marker_pub;
+ros::Publisher mag_marker_pub;
 
 // landing target marker size
 geometry_msgs::Vector3 lt_size;
@@ -266,6 +268,27 @@ static void lt_marker_sub_cb(const geometry_msgs::Vector3Stamped::ConstPtr &lt_m
 	lt_size = lt_marker->vector;
 }
 
+static void mag_sub_cb(const sensor_msgs::MagneticField::ConstPtr &mag)
+{
+	visualization_msgs::Marker marker;
+	marker.header.frame_id = mag.header.frame_id;
+	marker.header.stamp = mag.header.stamp;
+	marker.ns = "magnetic_field";
+	marker.type = visualization_msgs::Marker::ARROW;
+	marker.action = visualization_msgs::Marker::ADD;
+	marker.points.resize(2);
+	marker.points[1].x = msg.magnetic_field.x;
+	marker.points[1].y = msg.magnetic_field.y;
+	marker.points[1].z = msg.magnetic_field.z;
+	marker.scale.x = 1;
+	marker.scale.y = 0.1;
+	marker.scale.z = 0.1;
+	marker.color.a = 1.0;
+	marker.color.r = 0.0;
+	marker.color.g = 1.0;
+	marker.color.b = 0.0;
+}
+
 int main(int argc, char *argv[])
 {
 	ros::init(argc, argv, "copter_visualization");
@@ -294,6 +317,7 @@ int main(int argc, char *argv[])
 
 	auto pos_sub = nh.subscribe("local_position", 10, local_position_sub_cb);
 	auto wp_sub = nh.subscribe("local_setpoint", 10, setpoint_local_pos_sub_cb);
+	auto mag_sub = nh.subscribe("mag", 10, mag_sub_cb);
 	lt_marker_sub = nh.subscribe("lt_marker", 10, lt_marker_sub_cb);
 
 	ros::spin();
